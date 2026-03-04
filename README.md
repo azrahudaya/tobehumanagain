@@ -129,18 +129,6 @@ App URLs:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
 
-## Default Dev Accounts
-
-### Admin
-- Username: `admin`
-- Email: `admin@tobehumanagain.dev`
-- Password: `Admin123!`
-
-### Demo Player
-- Username: `player`
-- Email: `player@tobehumanagain.dev`
-- Password: `Player123!`
-
 ## Environment Variables (Backend)
 
 Check `backend/.env.example` for the full list.
