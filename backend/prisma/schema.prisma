@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OtpPurpose {
+  SIGNUP
+  LOGIN
+}
+
+enum MissionStatus {
+  LOCKED
+  UNLOCKED
+  COMPLETED
+}
+
+model User {
+  id              String         @id @default(cuid())
+  username        String         @unique
+  email           String         @unique
+  displayName     String
+  passwordHash    String
+  role            Role           @default(USER)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  refreshTokens   RefreshToken[]
+  progresses      Progress[]
+  choiceLogs      ChoiceLog[]
+  scoreLogs       ScoreLog[]
+  userMissions    UserMission[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OtpChallenge {
+  id           String     @id @default(cuid())
+  email        String
+  purpose      OtpPurpose
+  codeHash     String
+  payload      String?
+  expiresAt    DateTime
+  attemptCount Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([email, purpose])
+  @@index([createdAt])
+}
+
+model Chapter {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String?
+  orderIndex  Int
+  isPublished Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  scenes      Scene[]
+  missions    Mission[]
+  progresses  Progress[]
+  choiceLogs  ChoiceLog[]
+  scoreLogs   ScoreLog[]
+
+  @@index([orderIndex, isPublished])
+}
+
+model Scene {
+  id              String      @id @default(cuid())
+  chapterId       String
+  sceneKey        String
+  title           String
+  body            String
+  speaker         String?
+  orderIndex      Int
+  isStart         Boolean     @default(false)
+  isEnd           Boolean     @default(false)
+  isPublished     Boolean     @default(true)
+  background      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  chapter         Chapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  choices         Choice[]    @relation("SceneChoices")
+  incomingChoices Choice[]    @relation("NextScene")
+  progresses      Progress[]  @relation("CurrentScene")
+  choiceLogs      ChoiceLog[]
+
+  @@unique([chapterId, sceneKey])
+  @@index([chapterId, orderIndex])
+}
+
+model Choice {
+  id                String      @id @default(cuid())
+  sceneId           String
+  text              String
+  empathyDelta      Int
+  relationshipDelta Int         @default(0)
+  feedbackText      String
+  nextSceneId       String?
+  isPublished       Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  scene             Scene       @relation("SceneChoices", fields: [sceneId], references: [id], onDelete: Cascade)
+  nextScene         Scene?      @relation("NextScene", fields: [nextSceneId], references: [id], onDelete: SetNull)
+  choiceLogs        ChoiceLog[]
+
+  @@index([sceneId])
+  @@index([nextSceneId])
+}
+
+model Mission {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  title            String
+  description      String
+  objective        String
+  rewardScore      Int
+  rewardBadge      String
+  requiredMissionId String?
+  chapterId        String?
+  orderIndex       Int           @default(1)
+  isPublished      Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  requiredMission  Mission?      @relation("MissionDependency", fields: [requiredMissionId], references: [id], onDelete: SetNull)
+  unlocks          Mission[]     @relation("MissionDependency")
+  chapter          Chapter?      @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  userMissions     UserMission[]
+
+  @@index([orderIndex, isPublished])
+}
+
+model UserMission {
+  id         String        @id @default(cuid())
+  userId     String
+  missionId  String
+  status     MissionStatus @default(LOCKED)
+  scoreEarned Int          @default(0)
+  completedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission    Mission       @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([status])
+}
+
+model Progress {
+  id                 String    @id @default(cuid())
+  userId             String
+  chapterId          String
+  currentSceneId     String
+  checkpointIndex    Int       @default(0)
+  chapterEmpathyScore Int      @default(0)
+  totalEmpathyScore  Int       @default(0)
+  keyChoicesJson     String?
+  startedAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  completedAt        DateTime?
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter            Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  currentScene       Scene     @relation("CurrentScene", fields: [currentSceneId], references: [id], onDelete: Restrict)
+  scoreLogs          ScoreLog[]
+
+  @@unique([userId, chapterId])
+  @@index([userId, updatedAt])
+}
+
+model ChoiceLog {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String
+  sceneId     String
+  choiceId    String
+  empathyDelta Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  scene       Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  choice      Choice   @relation(fields: [choiceId], references: [id], onDelete: Cascade)
+
+  @@index([sceneId])
+  @@index([choiceId])
+  @@index([userId, createdAt])
+}
+
+model ScoreLog {
+  id         String    @id @default(cuid())
+  userId     String
+  chapterId  String
+  progressId String?
+  source     String
+  delta      Int
+  note       String?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter    Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progress   Progress? @relation(fields: [progressId], references: [id], onDelete: SetNull)
+
+  @@index([userId, chapterId, createdAt])
+}

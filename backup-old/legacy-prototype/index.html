@@ -1,0 +1,125 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="To Be Human Again - interactive visual novel prototype">
+  <title>To Be Human Again</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app" data-tone="neutral">
+    <section id="tapGate" class="screen gate active" aria-label="Start screen">
+      <div class="gate-card">
+        <h1>To Be Human Again</h1>
+        <p>Interactive prototype</p>
+        <button id="startGateBtn" class="primary-btn">Tap to begin</button>
+      </div>
+    </section>
+
+    <section id="openingScreen" class="screen opening" aria-label="Opening sequence">
+      <div class="opening-bg"></div>
+      <div id="notificationLayer" class="notification-layer" aria-hidden="true"></div>
+      <div id="crowdLayer" class="crowd-layer" aria-hidden="true">
+        <div class="silhouette one"></div>
+        <div class="silhouette two"></div>
+        <div class="silhouette three"></div>
+        <div class="silhouette four"></div>
+        <div class="silhouette five"></div>
+      </div>
+      <div id="openingNarration" class="opening-narration" aria-live="polite"></div>
+      <button id="skipOpeningBtn" class="ghost-btn skip-btn" type="button">Skip</button>
+    </section>
+
+    <section id="titleScreen" class="screen title-screen" aria-label="Title screen">
+      <div class="title-card">
+        <h2>Let's be human again</h2>
+        <p>Perubahan akan segera dimulai</p>
+        <button id="continueBtn" class="secondary-btn hidden" type="button">Continue</button>
+        <button id="toSetupBtn" class="primary-btn" type="button">Start</button>
+      </div>
+    </section>
+
+    <section id="setupScreen" class="screen setup-screen" aria-label="Setup screen">
+      <div class="panel">
+        <h2>Setup</h2>
+        <p class="muted">Pilih cara bermain dan identitasmu.</p>
+
+        <div class="mode-row" role="group" aria-label="Mode selection">
+          <button id="soloBtn" class="mode-btn selected" type="button">Play Solo</button>
+          <button id="groupBtn" class="mode-btn" type="button">Create Group (placeholder)</button>
+        </div>
+
+        <label for="usernameInput" class="field-label">Username</label>
+        <input id="usernameInput" class="text-input" type="text" maxlength="20" placeholder="Masukkan nama" autocomplete="nickname">
+
+        <p class="field-label">Choose Avatar</p>
+        <div id="avatarGrid" class="avatar-grid" role="radiogroup" aria-label="Avatar options"></div>
+
+        <button id="startJourneyBtn" class="primary-btn" type="button">Mulai Perjalanan</button>
+      </div>
+    </section>
+
+    <section id="hubScreen" class="screen hub-screen" aria-label="Level hub">
+      <div class="panel">
+        <h2>Perjalanan</h2>
+        <p class="muted">Pilih level untuk melanjutkan cerita.</p>
+        <div id="levelList" class="level-list"></div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-label="Gameplay screen">
+      <div id="sceneBackdrop" class="scene-backdrop" data-backdrop="default">
+        <div class="parallax back"></div>
+        <div class="parallax mid"></div>
+        <div class="parallax front"></div>
+      </div>
+
+      <header class="top-bar">
+        <button id="backBtn" class="icon-btn" type="button">Back</button>
+        <button id="menuBtn" class="icon-btn" type="button">Menu</button>
+        <p id="progressLabel" class="progress-label">Level 1 - Scene 1/5</p>
+      </header>
+
+      <section class="dialogue-box" aria-live="polite">
+        <h3 id="sceneTitle">Scene</h3>
+        <p id="sceneMeta" class="scene-meta hidden"></p>
+        <p id="sceneText">...</p>
+        <p id="consequenceText" class="consequence hidden"></p>
+        <div id="choicesWrap" class="choices-wrap" role="group" aria-label="Choices"></div>
+        <button id="continueSceneBtn" class="primary-btn hidden" type="button">Lanjut</button>
+      </section>
+    </section>
+
+    <section id="overlayScreen" class="screen overlay-screen" aria-label="Overlay dialog">
+      <div class="panel overlay-panel">
+        <h2 id="overlayTitle"></h2>
+        <p id="overlayText"></p>
+        <div id="overlayButtons" class="overlay-buttons"></div>
+      </div>
+    </section>
+
+    <aside id="menuDrawer" class="menu-drawer" aria-label="Game menu" aria-hidden="true">
+      <h3>Menu</h3>
+      <label class="toggle-row">
+        <span>Typewriter</span>
+        <input id="typewriterToggle" type="checkbox" checked>
+      </label>
+      <label class="toggle-row">
+        <span>Reduced Motion</span>
+        <input id="motionToggle" type="checkbox">
+      </label>
+      <button id="recapBtn" class="secondary-btn" type="button">Journey recap</button>
+      <button id="saveNowBtn" class="secondary-btn" type="button">Save now</button>
+      <button id="toHubBtn" class="secondary-btn" type="button">Level menu</button>
+      <button id="resetBtn" class="ghost-btn" type="button">Reset progress</button>
+    </aside>
+    <div id="menuScrim" class="menu-scrim" aria-hidden="true"></div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
