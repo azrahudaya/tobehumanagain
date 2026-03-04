@@ -1,5 +1,4 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { GameNav } from "./components/GameNav";
 import { useAuth } from "./context/AuthContext";
 import { AppFrame } from "./layouts/AppFrame";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
@@ -7,6 +6,7 @@ import { AdminPage } from "./pages/AdminPage";
 import { AuthPage } from "./pages/AuthPage";
 import { CreditsPage } from "./pages/CreditsPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { LevelSelectPage } from "./pages/LevelSelectPage";
 import { MissionsPage } from "./pages/MissionsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { StoryPage } from "./pages/StoryPage";
@@ -25,7 +25,6 @@ const ProtectedLayout = () => {
 
   return (
     <AppFrame>
-      <GameNav />
       <Outlet />
     </AppFrame>
   );
@@ -36,18 +35,21 @@ export const App = () => {
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/title" element={<Navigate to="/home" replace />} />
 
       <Route element={<ProtectedLayout />}>
-        <Route path="/title" element={<TitleScreenPage />} />
+        <Route path="/home" element={<TitleScreenPage />} />
+        <Route path="/levels" element={<LevelSelectPage />} />
         <Route path="/missions" element={<MissionsPage />} />
         <Route path="/story" element={<StoryPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={<Navigate to="/settings" replace />} />
         <Route path="/credits" element={<CreditsPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/title" replace />} />
+      <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 };

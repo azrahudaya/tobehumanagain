@@ -32,6 +32,16 @@ select {
   font: inherit;
 }
 
+h1 {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+button {
+  font-family: "Caveat", cursive;
+}
+
 @keyframes asset-float-slow {
   0%,
   100% {

@@ -26,7 +26,7 @@ export const AuthPage = () => {
   const [debugOtp, setDebugOtp] = useState<string | undefined>();
 
   if (isAuthenticated) {
-    return <Navigate to="/title" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   const isLogin = mode === "login";
@@ -58,7 +58,7 @@ export const AuthPage = () => {
       if (isLogin) {
         await login({ identifier, password });
         toast.success("Login berhasil.");
-        navigate("/title", { replace: true });
+        navigate("/home", { replace: true });
         return;
       }
 
@@ -76,7 +76,7 @@ export const AuthPage = () => {
 
       await verifySignup(email, otp);
       toast.success("Akun berhasil dibuat.");
-      navigate("/title", { replace: true });
+      navigate("/home", { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {

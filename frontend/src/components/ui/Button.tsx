@@ -30,7 +30,7 @@ export const Button = ({
     <button
       data-variant={variant}
       className={clsx(
-        "game-btn inline-flex h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-black tracking-[0.04em] transition duration-200 focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
+        "game-btn font-caveat inline-flex h-11 items-center justify-center gap-2 rounded-full border px-5 text-lg font-bold leading-none tracking-[0.03em] transition duration-200 focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
         "hover:-translate-y-0.5 active:translate-y-0",
         variantStyles[variant],
         fullWidth && "w-full",

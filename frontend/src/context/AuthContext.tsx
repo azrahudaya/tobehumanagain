@@ -15,6 +15,18 @@ type LoginPayload = {
   password: string;
 };
 
+type UpdateProfilePayload = {
+  displayName?: string;
+  email?: string;
+  avatarDataUrl?: string | null;
+  currentPassword?: string;
+};
+
+type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
 type OtpResponse = {
   message: string;
   debugOtp?: string;
@@ -28,6 +40,8 @@ type AuthContextValue = {
   startSignup: (payload: SignupStartPayload) => Promise<OtpResponse>;
   verifySignup: (email: string, code: string) => Promise<AuthUser>;
   login: (payload: LoginPayload) => Promise<AuthUser>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
+  changePassword: (payload: ChangePasswordPayload) => Promise<void>;
   refreshSession: () => Promise<string | null>;
   logout: () => Promise<void>;
 };
@@ -127,6 +141,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [applySession],
   );
 
+  const updateProfile = useCallback(async (payload: UpdateProfilePayload) => {
+    const { data } = await api.patch<{ user: AuthUser; accessToken?: string }>("/auth/profile", payload);
+    setUser(data.user);
+
+    if (data.accessToken) {
+      setAccessTokenState(data.accessToken);
+      setAccessToken(data.accessToken);
+      persistToken(data.accessToken);
+    }
+
+    return data.user;
+  }, []);
+
+  const changePassword = useCallback(async (payload: ChangePasswordPayload) => {
+    await api.post("/auth/password", payload);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.post("/auth/logout");
@@ -144,6 +175,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       startSignup,
       verifySignup,
       login,
+      updateProfile,
+      changePassword,
       refreshSession,
       logout,
     }),
@@ -154,6 +187,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       startSignup,
       verifySignup,
       login,
+      updateProfile,
+      changePassword,
       refreshSession,
       logout,
     ],

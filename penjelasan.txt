@@ -1,0 +1,31 @@
+TO BE HUMAN AGAIN - PENJELASAN SINGKAT
+
+Game ini adalah game cerita interaktif (visual novel) bertema empati dan cyberbullying.
+Player akan memilih respons di setiap scene, lalu sistem memberi feedback edukatif,
+menghitung progress misi, dan menampilkan refleksi.
+
+MENU UTAMA (NAVBAR)
+1. Home
+   Halaman awal game (New Game, Continue, Profile, Credits).
+
+2. Missions
+   Menampilkan daftar misi dan statusnya (Locked / Active / Completed).
+
+3. Reflection
+   Menampilkan jurnal refleksi: rekomendasi, ringkasan chapter, badge, dan riwayat pilihan penting.
+
+4. Profile
+   Halaman akun player.
+
+ISI HALAMAN PROFILE
+- Edit avatar (upload / remove)
+- Edit display name
+- Edit email (dengan verifikasi password saat ini)
+- Ganti password
+- Tombol Logout di bagian bawah halaman
+- (Khusus admin) tombol masuk ke Admin Panel
+
+MENU/PAGE TAMBAHAN
+- Story: halaman gameplay cerita, muncul saat New Game/Continue.
+- Credits: halaman kredit project.
+- Auth: Sign In / Sign Up.

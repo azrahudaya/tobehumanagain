@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../api/client";
 import { Button } from "../components/ui/Button";
-import { Modal } from "../components/ui/Modal";
 import { useGame } from "../context/GameContext";
 
 const TYPE_SPEED_MS = 38;
@@ -36,7 +36,7 @@ const splitNarrationLines = (body: string) => {
 
 export const StoryPage = () => {
   const navigate = useNavigate();
-  const { currentScene, progress, pendingFeedback, chapterCompleted, continueGame, choose, clearFeedback } = useGame();
+  const { currentScene, chapterCompleted, continueGame, choose } = useGame();
   const [loading, setLoading] = useState(false);
   const [narrationLines, setNarrationLines] = useState<string[]>([]);
   const [narrationIndex, setNarrationIndex] = useState(0);
@@ -152,7 +152,7 @@ export const StoryPage = () => {
   const renderedChoices = currentScene?.choices.slice(0, visibleChoiceCount) ?? [];
 
   return (
-    <div className="relative min-h-[calc(100vh-72px)] overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden lg:min-h-[calc(100vh-72px)]">
       {sceneBackground ? (
         <div className="pointer-events-none absolute inset-0">
           <img
@@ -166,20 +166,22 @@ export const StoryPage = () => {
         <div className="pointer-events-none absolute inset-0 bg-[rgb(248,250,242)]" />
       )}
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] w-full max-w-4xl flex-col justify-between p-4 md:p-6">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-4xl flex-col p-4 md:p-6 lg:min-h-[calc(100vh-72px)]">
         {!currentScene && (
           <p className="rounded-2xl bg-white/78 p-4 text-sm text-[#5f4e54]">
-            Belum ada scene aktif. Mulai New Game dari Title.
+            Belum ada scene aktif. Mulai dari Start Game di Home.
           </p>
         )}
 
         {currentScene && (
           <>
-            <div className="pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Button variant="secondary" className="h-10 rounded-xl px-4 text-lg" onClick={() => navigate("/levels")}>
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
               <div className="inline-flex items-center gap-2 rounded-full border border-[#d8d2ca] bg-[#fffdf2dc] px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#5d4b50] shadow-[0_8px_18px_rgba(45,28,30,0.12)]">
                 <span>{currentScene.chapter.title}</span>
-                <span className="h-1 w-1 rounded-full bg-[#8c787e]" />
-                <span>Checkpoint {progress?.checkpointIndex ?? 0}</span>
               </div>
             </div>
 
@@ -219,7 +221,7 @@ export const StoryPage = () => {
 
               {(isTyping || hasNextNarration) && (
                 <Button variant="secondary" fullWidth onClick={continueNarration}>
-                  {isTyping ? "Tampilkan Penuh" : "Lanjut"}
+                  {isTyping ? "Skip" : "Lanjut"}
                 </Button>
               )}
 
@@ -232,11 +234,14 @@ export const StoryPage = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: CHOICE_TRANSITION_SECONDS, ease: ANIM_EASE }}
-                        className="w-full rounded-2xl border border-[#d4cec6] bg-[#fffdf4de] px-4 py-3 text-left text-sm font-semibold text-[#534146] shadow-[0_8px_20px_rgba(54,36,36,0.16)] transition hover:-translate-y-0.5 hover:border-[#b6ad8d] hover:bg-[#fffaf0] disabled:opacity-60"
+                        className="group w-full cursor-pointer rounded-2xl border border-[#b9c6ee] bg-[linear-gradient(180deg,#f8faff_0%,#eef3ff_100%)] px-4 py-3 text-left font-body text-[0.95rem] font-semibold text-[#2d467a] shadow-[0_10px_22px_rgba(48,66,112,0.18)] transition duration-150 hover:-translate-y-0.5 hover:border-[#8fa5df] hover:bg-[linear-gradient(180deg,#ffffff_0%,#eef2ff_100%)] hover:shadow-[0_14px_26px_rgba(48,66,112,0.24)] active:translate-y-0 active:scale-[0.998] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#9aaee5]/35 disabled:cursor-not-allowed disabled:opacity-60"
                         onClick={() => handleChoice(choice.id)}
                         disabled={loading}
                       >
-                        {choice.text}
+                        <span className="flex items-center justify-between gap-3">
+                          <span>{choice.text}</span>
+                          <ChevronRight className="h-4 w-4 shrink-0 opacity-70 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+                        </span>
                       </motion.button>
                     ))
                   ) : (
@@ -249,22 +254,13 @@ export const StoryPage = () => {
 
               {chapterCompleted && choicesUnlocked && (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <Button variant="secondary" onClick={() => navigate("/title")}>Back to Title</Button>
+                  <Button variant="secondary" onClick={() => navigate("/home")}>Back to Home</Button>
                   <Button onClick={() => navigate("/dashboard")}>Open Reflection</Button>
                 </div>
               )}
             </div>
           </>
         )}
-
-        <Modal
-          open={Boolean(pendingFeedback)}
-          title="Feedback Edukatif"
-          onClose={clearFeedback}
-        >
-          <p className="text-sm text-[#58484d]">{pendingFeedback?.text}</p>
-          <Button fullWidth onClick={clearFeedback}>Lanjut</Button>
-        </Modal>
       </div>
     </div>
   );

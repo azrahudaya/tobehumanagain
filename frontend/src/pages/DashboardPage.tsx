@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import {
   RiCheckboxCircleFill,
   RiLoader4Line,
@@ -8,7 +9,9 @@ import {
   RiSparkling2Fill,
 } from "@remixicon/react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { api, getErrorMessage } from "../api/client";
+import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import type { DashboardData } from "../types/api";
 
@@ -20,6 +23,7 @@ const getBadgeLabel = (badge: string) => {
 };
 
 export const DashboardPage = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +53,13 @@ export const DashboardPage = () => {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
+      <div>
+        <Button variant="secondary" className="h-10 rounded-xl px-4 text-lg" onClick={() => navigate("/home")}>
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
       <h1 className="font-caveat text-5xl text-ink">Reflection Journal</h1>
 
       <Card>

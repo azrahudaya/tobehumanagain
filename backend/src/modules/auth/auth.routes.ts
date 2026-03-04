@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { OtpPurpose, type Role } from "@prisma/client";
+import { OtpPurpose, Prisma, type Role } from "@prisma/client";
 import rateLimit from "express-rate-limit";
 import { Router, type Response } from "express";
 import { z } from "zod";
@@ -58,8 +58,36 @@ const loginSchema = z.object({
   password: z.string().min(8).max(64),
 });
 
+const updateProfileSchema = z
+  .object({
+    displayName: z.string().trim().min(2).max(40).optional(),
+    email: z.string().email().optional(),
+    avatarDataUrl: z.union([z.string().max(700_000), z.null()]).optional(),
+    currentPassword: z.string().min(8).max(64).optional(),
+  })
+  .refine((value) => value.displayName !== undefined || value.email !== undefined || value.avatarDataUrl !== undefined, {
+    message: "No profile field provided.",
+  });
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(8).max(64),
+  newPassword: z.string().min(8).max(64),
+});
+
+const avatarDataUrlPattern = /^data:image\/(png|jpeg|jpg|webp);base64,[a-zA-Z0-9+/=]+$/;
+
+const authUserSelect = {
+  id: true,
+  username: true,
+  email: true,
+  displayName: true,
+  avatarUrl: true,
+  role: true,
+} satisfies Prisma.UserSelect;
+
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const normalizeUsername = (username: string) => username.trim().toLowerCase();
+const normalizeDisplayName = (displayName: string) => displayName.trim();
 
 const setRefreshCookie = (res: Response, refreshToken: string, expiresAt: Date) => {
   res.cookie("refreshToken", refreshToken, {
@@ -163,7 +191,7 @@ const issueSession = async ({
   user,
   res,
 }: {
-  user: { id: string; username: string; email: string; role: Role; displayName: string };
+  user: { id: string; username: string; email: string; role: Role; displayName: string; avatarUrl: string | null };
   res: Response;
 }) => {
   const accessToken = signAccessToken({
@@ -205,6 +233,7 @@ const issueSession = async ({
       username: user.username,
       email: user.email,
       displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
       role: user.role,
     },
   };
@@ -316,6 +345,7 @@ router.post("/signup/verify", otpVerifyLimiter, async (req, res, next) => {
         email: user.email,
         role: user.role,
         displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
       },
       res,
     });
@@ -349,6 +379,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
         email: user.email,
         role: user.role,
         displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
       },
       res,
     });
@@ -404,6 +435,7 @@ router.post("/refresh", async (req, res, next) => {
         email: user.email,
         role: user.role,
         displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
       },
       res,
     });
@@ -449,6 +481,146 @@ router.post("/logout", async (req, res, next) => {
   }
 });
 
+router.patch("/profile", requireAuth, async (req, res, next) => {
+  try {
+    const parsed = updateProfileSchema.parse(req.body);
+    const userId = req.authUser!.id;
+
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        passwordHash: true,
+        avatarUrl: true,
+      },
+    });
+
+    if (!currentUser) {
+      throw new HttpError(404, "User not found.");
+    }
+
+    const updateData: Prisma.UserUpdateInput = {};
+    let emailChanged = false;
+
+    if (parsed.displayName !== undefined) {
+      const normalizedDisplayName = normalizeDisplayName(parsed.displayName);
+      if (normalizedDisplayName !== currentUser.displayName) {
+        updateData.displayName = normalizedDisplayName;
+      }
+    }
+
+    if (parsed.email !== undefined) {
+      const normalizedEmail = normalizeEmail(parsed.email);
+      if (normalizedEmail !== currentUser.email) {
+        if (!parsed.currentPassword) {
+          throw new HttpError(400, "Current password is required to change email.");
+        }
+
+        const validPassword = await bcrypt.compare(parsed.currentPassword, currentUser.passwordHash);
+        if (!validPassword) {
+          throw new HttpError(401, "Current password is incorrect.");
+        }
+
+        const emailOwner = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+          select: { id: true },
+        });
+        if (emailOwner && emailOwner.id !== userId) {
+          throw new HttpError(409, "Email already registered.");
+        }
+
+        updateData.email = normalizedEmail;
+        emailChanged = true;
+      }
+    }
+
+    if (parsed.avatarDataUrl !== undefined) {
+      if (parsed.avatarDataUrl !== null && !avatarDataUrlPattern.test(parsed.avatarDataUrl)) {
+        throw new HttpError(400, "Avatar format is invalid. Use png/jpg/jpeg/webp.");
+      }
+
+      if (parsed.avatarDataUrl !== currentUser.avatarUrl) {
+        updateData.avatarUrl = parsed.avatarDataUrl;
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: authUserSelect,
+      });
+
+      if (!existingUser) {
+        throw new HttpError(404, "User not found.");
+      }
+
+      return res.json({ user: existingUser });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: authUserSelect,
+    });
+
+    const responsePayload: { user: typeof updatedUser; accessToken?: string } = {
+      user: updatedUser,
+    };
+
+    if (emailChanged) {
+      responsePayload.accessToken = signAccessToken({
+        sub: updatedUser.id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      });
+    }
+
+    return res.json(responsePayload);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/password", requireAuth, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+    const userId = req.authUser!.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true },
+    });
+
+    if (!user) {
+      throw new HttpError(404, "User not found.");
+    }
+
+    const validPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!validPassword) {
+      throw new HttpError(401, "Current password is incorrect.");
+    }
+
+    const samePassword = await bcrypt.compare(newPassword, user.passwordHash);
+    if (samePassword) {
+      throw new HttpError(400, "New password must be different from current password.");
+    }
+
+    const nextHash = await bcrypt.hash(newPassword, 12);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: nextHash },
+      select: { id: true },
+    });
+
+    return res.json({ message: "Password updated." });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
@@ -458,6 +630,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
         username: true,
         email: true,
         displayName: true,
+        avatarUrl: true,
         role: true,
         createdAt: true,
       },

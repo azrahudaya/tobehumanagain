@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { api, getErrorMessage } from "../api/client";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { useGame } from "../context/GameContext";
@@ -19,27 +17,38 @@ const titleIllusFrames = [
   "/brand/title-illus-gif4.png",
 ];
 
+const noticeVersions = {
+  missions: "v1",
+  settings: "v1",
+  credits: "v1",
+} as const;
+
+type NoticeKey = keyof typeof noticeVersions;
+type NoticeState = Record<NoticeKey, boolean>;
+
+const getNoticeStorageKey = (key: NoticeKey) => `tbh_notice_${key}_${noticeVersions[key]}_seen`;
+
 export const TitleScreenPage = () => {
   const navigate = useNavigate();
-  const { startNewGame, continueGame, clearRun } = useGame();
-  const [hasProgress, setHasProgress] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { clearRun } = useGame();
   const [frameIndex, setFrameIndex] = useState(0);
+  const [notices, setNotices] = useState<NoticeState>({
+    missions: false,
+    settings: false,
+    credits: false,
+  });
 
   useEffect(() => {
     clearRun();
-
-    const loadTitleState = async () => {
-      try {
-        const { data } = await api.get<{ hasProgress: boolean }>("/game/title-state");
-        setHasProgress(data.hasProgress);
-      } catch {
-        setHasProgress(false);
-      }
-    };
-
-    void loadTitleState();
   }, [clearRun]);
+
+  useEffect(() => {
+    setNotices({
+      missions: localStorage.getItem(getNoticeStorageKey("missions")) !== "1",
+      settings: localStorage.getItem(getNoticeStorageKey("settings")) !== "1",
+      credits: localStorage.getItem(getNoticeStorageKey("credits")) !== "1",
+    });
+  }, []);
 
   useEffect(() => {
     titleIllusFrames.forEach((src) => {
@@ -56,53 +65,41 @@ export const TitleScreenPage = () => {
     };
   }, []);
 
-  const handleNewGame = async () => {
-    setLoading(true);
-    try {
-      await startNewGame();
-      navigate("/story");
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
+  const handleStartGame = () => {
+    navigate("/levels");
   };
 
-  const handleContinue = async () => {
-    setLoading(true);
-    try {
-      const exists = await continueGame();
-      if (!exists) {
-        toast.error("Belum ada progress untuk dilanjutkan.");
-        setHasProgress(false);
-        return;
-      }
-      navigate("/story");
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
+  const handleOpenMenu = (key: NoticeKey, path: string) => {
+    if (notices[key]) {
+      localStorage.setItem(getNoticeStorageKey(key), "1");
+      setNotices((prev) => ({ ...prev, [key]: false }));
     }
+    navigate(path);
   };
 
   return (
-    <div className="relative min-h-[88vh] overflow-hidden p-4 md:min-h-[72vh] md:p-6">
+    <div className="relative h-[100dvh] overflow-hidden p-4 md:p-6 lg:min-h-[72vh] lg:h-auto">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(126,143,190,0.2),transparent_55%),radial-gradient(circle_at_30%_90%,rgba(251,137,104,0.2),transparent_58%)]" />
-      <div className="absolute left-1/2 top-8 h-40 w-40 -translate-x-1/2 rounded-full border border-[#6f5a60]/20" />
-      <div className="absolute bottom-16 right-8 h-24 w-24 rounded-full border border-[#8d787e]/20" />
 
-      <section className="relative z-10 mx-auto flex h-full max-w-xl flex-col items-center text-center">
+      <section className="relative z-10 mx-auto flex h-full max-w-xl flex-col items-center justify-center text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full pt-3 md:max-w-[430px] md:pt-5"
+          className="w-full md:max-w-[430px]"
         >
-          <img
-            src={titleIllusFrames[frameIndex]}
-            alt="To Be Human Again animated title illustration"
-            className="mx-auto w-full max-w-[360px] md:max-w-[390px]"
-          />
+          <div className="relative mx-auto w-full max-w-[390px]">
+            <img
+              src="/brand/logo1.png"
+              alt="To Be Human Again logo"
+              className="pointer-events-none absolute left-1/2 top-5 z-20 w-[165px] -translate-x-1/2 md:top-7 md:w-[205px]"
+            />
+            <img
+              src={titleIllusFrames[frameIndex]}
+              alt="To Be Human Again animated title illustration"
+              className="mx-auto w-full max-w-[360px] translate-y-20 md:max-w-[390px] md:translate-y-14"
+            />
+          </div>
 
           <motion.div
             initial="hidden"
@@ -117,22 +114,53 @@ export const TitleScreenPage = () => {
               },
             }}
           >
-            <Card className="mx-auto mt-1 w-full max-w-[390px] space-y-3 border-[#c9c2ba] bg-white/74 p-4 md:mt-2">
+            <Card className="mx-auto -mt-2 w-full max-w-[390px] space-y-3 border-[#c9c2ba] bg-white/74 p-4 md:-mt-1">
               <motion.div variants={buttonMotion}>
-                <Button fullWidth onClick={handleNewGame} disabled={loading}>
-                  New Game
+                <Button fullWidth onClick={handleStartGame}>
+                  Start Game
                 </Button>
               </motion.div>
               <motion.div variants={buttonMotion}>
-                <Button fullWidth variant="secondary" onClick={handleContinue} disabled={!hasProgress || loading}>
-                  Continue
+                <Button
+                  fullWidth
+                  variant="secondary"
+                  onClick={() => handleOpenMenu("missions", "/missions")}
+                >
+                  <span className="relative inline-flex items-center">
+                    Missions
+                    {notices.missions && (
+                      <span className="absolute -right-3 -top-1.5 h-2.5 w-2.5 rounded-full bg-[#d24242] ring-2 ring-[#fff9f6]" />
+                    )}
+                  </span>
                 </Button>
               </motion.div>
               <motion.div variants={buttonMotion}>
-                <Button fullWidth variant="ghost" onClick={() => navigate("/settings")}>Settings</Button>
+                <Button
+                  fullWidth
+                  variant="ghost"
+                  onClick={() => handleOpenMenu("settings", "/settings")}
+                >
+                  <span className="relative inline-flex items-center">
+                    Settings
+                    {notices.settings && (
+                      <span className="absolute -right-3 -top-1.5 h-2.5 w-2.5 rounded-full bg-[#d24242] ring-2 ring-[#fff9f6]" />
+                    )}
+                  </span>
+                </Button>
               </motion.div>
               <motion.div variants={buttonMotion}>
-                <Button fullWidth variant="ghost" onClick={() => navigate("/credits")}>Credits</Button>
+                <Button
+                  fullWidth
+                  variant="ghost"
+                  onClick={() => handleOpenMenu("credits", "/credits")}
+                >
+                  <span className="relative inline-flex items-center">
+                    Credits
+                    {notices.credits && (
+                      <span className="absolute -right-3 -top-1.5 h-2.5 w-2.5 rounded-full bg-[#d24242] ring-2 ring-[#fff9f6]" />
+                    )}
+                  </span>
+                </Button>
               </motion.div>
             </Card>
           </motion.div>
