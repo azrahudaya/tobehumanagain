@@ -1,139 +1,175 @@
-﻿# To Be Human Again - Full Web App
+# To Be Human Again
 
-Full-stack web game (React + Express) untuk visual-novel edukasi empati dengan branching story, mission system, save/continue, dashboard skor, dan admin panel CRUD + analytics.
+An empathy-focused story game built as a full-stack web app.
 
-## Stack yang dipilih (dan alasannya)
+This project started as a prototype and grew into a playable React + Express app with:
+- branching narrative scenes
+- mission progression
+- save/continue flow
+- OTP-based signup
+- admin CRUD + basic analytics
 
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-  - cepat untuk iterasi UI mobile-first, komponen reusable, dan routing jelas.
-- Backend: Node.js + Express + TypeScript
-  - ringan, mudah dipisah per modul (`auth`, `game`, `admin`), cocok untuk API game state.
-- Database: SQLite + Prisma Client
-  - setup lokal cepat tanpa service tambahan, tetap punya typed query via Prisma.
-- Auth: Sign up (OTP email), login (username/email + password), JWT access token + refresh token cookie
-  - aman untuk sesi user, mendukung role USER/ADMIN, plus rate limiting OTP dan login limiter.
+The vibe is visual novel style, mobile-first, and easy to keep expanding.
 
-## Fitur yang sudah diimplementasikan
+## What You Can Do Right Now
 
-### Player/Game
-- Title screen: `New Game`, `Continue`, `Settings`, `Credits`
-- Continue aktif jika ada progress tersimpan
-- Branching narrative story (seed: 1 chapter, 8 scene, 2-3 choice per scene)
-- Tiap choice memengaruhi empathy score + feedback edukatif
-- Mission/level list dengan lock/unlock + reward badge/score
-- Save/load progress (checkpoint scene tersimpan server-side)
-- Dashboard hasil (total score, chapter summary, rekomendasi, riwayat pilihan)
+### Player side
+- Start a new run or continue saved progress
+- Play through branching scenes and choices
+- Get educational feedback after each choice
+- See mission status (auto-tracked by the system)
+- Open a reflection journal
 
-### Admin
-- Admin role-based access
-- CRUD Chapters, Scenes, Choices, Missions
-- Branching config via `choice -> nextSceneId`
-- Publish/unpublish chapter/scene/choice/mission
-- Analytics sederhana:
-  - jumlah pemain
-  - scene paling sering dipilih
-  - distribusi empathy score
+### Admin side
+- Manage chapters, scenes, choices, and missions
+- Configure branching (`choice -> nextSceneId`)
+- Set scoring + feedback per choice
+- Publish/unpublish content
+- View simple analytics (players, most-picked scenes, score distribution)
 
-### Auth & Security
-- Sign up pakai OTP email
-- Login pakai `username/email + password` (tanpa OTP)
-- OTP rate limiting + cooldown + max attempt
-- Login rate limiting (anti brute force dasar)
-- Password hash (`bcrypt`)
-- Access token (Bearer JWT) + refresh token (HTTP-only cookie)
+### Auth + security
+- Sign up with email OTP
+- Login with username/email + password
+- Access token + refresh token flow
+- OTP and login rate limiting (basic anti-bruteforce)
 
-## Struktur proyek
+## Tech Stack
+
+### Frontend
+- React + TypeScript + Vite
+- Tailwind CSS
+- Framer Motion
+
+### Backend
+- Node.js + Express + TypeScript
+- Prisma ORM
+- SQLite (dev)
+
+### Auth & mail
+- JWT (access token)
+- HTTP-only refresh cookie
+- Nodemailer (Gmail SMTP or any SMTP provider)
+
+## Project Structure
 
 ```txt
 .
-├─ frontend/                 # React app
+├─ frontend/
 │  ├─ src/
-│  │  ├─ components/ui/      # Button, Card, Modal, DialogBox, Input
-│  │  ├─ context/            # AuthContext, GameContext
-│  │  ├─ pages/              # Auth, Title, Story, Missions, Dashboard, Admin
-│  │  ├─ api/                # axios client + token/refresh handler
-│  │  └─ layouts/
-│  └─ ...
-├─ backend/                  # Express API
+│  │  ├─ api/
+│  │  ├─ components/
+│  │  ├─ context/
+│  │  ├─ layouts/
+│  │  └─ pages/
+│  └─ public/
+├─ backend/
 │  ├─ src/
 │  │  ├─ modules/
-│  │  │  ├─ auth/            # signup OTP, login direct, refresh, me, logout
-│  │  │  ├─ game/            # title-state, new/continue, choose, missions, dashboard
-│  │  │  └─ admin/           # CRUD + analytics
+│  │  │  ├─ auth/
+│  │  │  ├─ game/
+│  │  │  └─ admin/
 │  │  ├─ middleware/
 │  │  └─ lib/
-│  ├─ prisma/
-│  │  ├─ schema.prisma
-│  │  ├─ init.sql            # schema SQL bootstrap
-│  │  ├─ setup-db.ts         # initialize sqlite from init.sql
-│  │  └─ seed.ts             # seed chapter/scenes/choices/missions/users
-│  └─ .env.example
+│  └─ prisma/
+│     ├─ schema.prisma
+│     ├─ setup-db.ts
+│     └─ seed.ts
 ├─ shared/types/
-└─ backup-old/legacy-prototype/  # file prototipe lama
+└─ backup-old/legacy-prototype/
 ```
 
-## Setup lokal (dev)
+## Quick Start (Local Dev)
 
-1. Install dependencies
+### 1) Install dependencies
 
 ```bash
 npm install
 ```
 
-2. Konfigurasi env backend
+### 2) Setup backend env
+
+Create your local env from the example:
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-3. (Opsional) isi kredensial Gmail SMTP untuk OTP real email
+On Windows PowerShell:
 
-- `SMTP_USER`: email Gmail
-- `SMTP_PASS`: Gmail App Password
-- `SMTP_FROM`: sender display
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
 
-Jika SMTP tidak diisi, OTP tetap jalan di mode dev melalui `debugOtp` response (ditampilkan di UI sign up).
+### 3) Configure SMTP (optional but recommended)
 
-4. Setup database dan seed
+If SMTP is configured, OTP is sent to real email.
+If not, signup still works in dev mode using `debugOtp` response.
+
+Important keys:
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+### 4) Initialize database + seed data
 
 ```bash
 npm run db:setup
 ```
 
-5. Jalankan frontend + backend
+### 5) Run frontend + backend together
 
 ```bash
 npm run dev
 ```
 
+App URLs:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
 
-## Akun default (dev only)
+## Default Dev Accounts
 
-- Admin
-  - username: `admin`
-  - email: `admin@tobehumanagain.dev`
-  - password: `Admin123!`
-- User demo
-  - username: `player`
-  - email: `player@tobehumanagain.dev`
-  - password: `Player123!`
+### Admin
+- Username: `admin`
+- Email: `admin@tobehumanagain.dev`
+- Password: `Admin123!`
 
-## Environment variables backend
+### Demo Player
+- Username: `player`
+- Email: `player@tobehumanagain.dev`
+- Password: `Player123!`
 
-Contoh tersedia di `backend/.env.example`.
+## Environment Variables (Backend)
 
-- `PORT`, `CLIENT_ORIGIN`
-- `DATABASE_URL`
-- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
-- `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`
-- `OTP_TTL_MINUTES`, `OTP_RESEND_COOLDOWN_SECONDS`, `OTP_MAX_REQUESTS_WINDOW`, `OTP_WINDOW_MINUTES`, `OTP_MAX_ATTEMPTS`
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+Check `backend/.env.example` for the full list.
 
-## Catatan keputusan teknis
+Core groups:
+- App/config: `PORT`, `CLIENT_ORIGIN`, `DATABASE_URL`
+- JWT/session: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`
+- OTP controls: `OTP_TTL_MINUTES`, `OTP_RESEND_COOLDOWN_SECONDS`, `OTP_MAX_REQUESTS_WINDOW`, `OTP_WINDOW_MINUTES`, `OTP_MAX_ATTEMPTS`
+- SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 
-- Konten story/missions disimpan di DB (bukan hardcoded frontend), sehingga mudah dikembangkan lewat admin panel.
-- Flow gameplay utama sudah jalan end-to-end:
-  - New Game -> Story -> Choice -> Feedback -> Next Scene -> Save progress -> Continue -> Dashboard.
-- Admin CRUD dibuat minimal namun operasional agar bisa langsung dipakai authoring konten.
+## Useful Scripts
+
+From repo root:
+
+- `npm run dev` → run backend + frontend
+- `npm run dev:backend` → backend only
+- `npm run dev:frontend` → frontend only
+- `npm run build` → build both apps
+- `npm run db:setup` → generate client + setup DB + seed
+- `npm run seed` → reseed database
+
+## Notes
+
+- Story and mission content live in the database, not hardcoded in the UI.
+- Mission completion is auto-evaluated by the system.
+- The gameplay core flow is working end-to-end:
+  - New Game -> Story -> Choice -> Feedback -> Next Scene -> Save -> Continue
+
+If you want to deploy this next, the easiest path is:
+1) switch SQLite to Postgres
+2) move secrets to proper env manager
+3) run backend + frontend behind a single domain with secure cookies enabled
