@@ -1,0 +1,30 @@
+Stack project
+
+Frontend
+- React untuk membangun UI berbasis komponen
+- TypeScript untuk type safety dan mengurangi bug
+- Vite untuk dev server cepat dan build frontend
+- Tailwind CSS untuk styling cepat dengan utility class
+- React Router untuk navigasi antar halaman
+- Axios untuk komunikasi HTTP ke backend API
+- Framer Motion untuk animasi UI
+
+Backend
+- Node js sebagai runtime server JavaScript
+- Express untuk routing dan endpoint API
+- TypeScript untuk menjaga konsistensi tipe data
+- Prisma ORM untuk akses database lebih terstruktur
+- SQLite better sqlite3 sebagai database lokal
+- JWT authentication untuk akses login berbasis token
+- Zod validation untuk validasi request payload
+- Nodemailer OTP untuk kirim kode verifikasi email
+
+Tooling
+- NPM Workspaces untuk mengelola monorepo frontend backend
+- Concurrently untuk menjalankan frontend dan backend bersamaan
+
+Metode pengembangan sistem web
+- Agile iteratif incremental
+- Pengembangan dilakukan bertahap per fitur
+- Setiap perubahan divalidasi lewat build dan pengujian cepat
+- Perbaikan dilakukan berulang berdasarkan feedback

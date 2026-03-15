@@ -185,7 +185,7 @@ export const StoryPage = () => {
               </div>
             </div>
 
-            <div className="space-y-3 pb-1 md:pb-3">
+            <div className="mt-auto space-y-3 pb-1 md:pb-3">
               <div
                 className={`rounded-[1.75rem] border border-[#d9d2ca] bg-[#fffdf4ec] px-5 py-4 shadow-[0_12px_24px_rgba(45,28,30,0.16)] ${
                   isTyping || hasNextNarration ? "cursor-pointer" : ""

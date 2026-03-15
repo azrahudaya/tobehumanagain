@@ -3,9 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import {
   RiCheckboxCircleFill,
   RiFlag2Line,
-  RiFocus3Line,
-  RiLoader4Line,
-  RiLock2Line,
+  RiTimeLine,
   RiMedal2Fill,
 } from "@remixicon/react";
 import toast from "react-hot-toast";
@@ -20,23 +18,15 @@ const fallbackBadgeLabel = "Mystery Badge";
 const getStatusConfig = (status: MissionItem["status"]) => {
   if (status === "COMPLETED") {
     return {
-      label: "Cleared",
+      label: "Berhasil",
       Icon: RiCheckboxCircleFill,
       chipClassName: "bg-[#d8f1e3] text-[#216146]",
     };
   }
 
-  if (status === "UNLOCKED") {
-    return {
-      label: "Live",
-      Icon: RiLoader4Line,
-      chipClassName: "bg-[#e5ebff] text-[#2f4db6]",
-    };
-  }
-
   return {
-    label: "Sealed",
-    Icon: RiLock2Line,
+    label: "Belum",
+    Icon: RiTimeLine,
     chipClassName: "bg-[#ece9e4] text-[#6f5f65]",
   };
 };
@@ -68,7 +58,7 @@ export const MissionsPage = () => {
   }, []);
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="mx-auto w-full space-y-4 p-4 md:p-6 lg:w-2/3 lg:max-w-none">
       <div>
         <Button variant="secondary" className="h-10 rounded-xl px-4 text-lg" onClick={() => navigate("/home")}>
           <ArrowLeft className="h-4 w-4" />
@@ -101,10 +91,6 @@ export const MissionsPage = () => {
                       </p>
                       <h2 className="text-xl font-bold text-ink">{mission.title}</h2>
                       <p className="mt-1 text-sm text-[#5f4d53]">{mission.description}</p>
-                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#6d5a60]">
-                        <RiFocus3Line className="h-4 w-4" />
-                        Target: {mission.objective}
-                      </p>
                       <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-[#e3d9c7] bg-[#fff9ec] px-2.5 py-1 text-xs font-bold text-[#7b5a2a]">
                         <RiMedal2Fill className="h-4 w-4" />
                         {badgeLabel}

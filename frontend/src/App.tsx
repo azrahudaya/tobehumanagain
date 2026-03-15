@@ -8,6 +8,7 @@ import { CreditsPage } from "./pages/CreditsPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LevelSelectPage } from "./pages/LevelSelectPage";
 import { MissionsPage } from "./pages/MissionsPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { StoryPage } from "./pages/StoryPage";
 import { TitleScreenPage } from "./pages/TitleScreenPage";
@@ -44,7 +45,7 @@ export const App = () => {
         <Route path="/story" element={<StoryPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile" element={<Navigate to="/settings" replace />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/credits" element={<CreditsPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>

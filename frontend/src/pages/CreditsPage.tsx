@@ -7,7 +7,7 @@ export const CreditsPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="mx-auto w-full space-y-4 p-4 md:p-6 lg:w-2/3 lg:max-w-none">
       <div>
         <Button variant="secondary" className="h-10 rounded-xl px-4 text-lg" onClick={() => navigate("/home")}>
           <ArrowLeft className="h-4 w-4" />

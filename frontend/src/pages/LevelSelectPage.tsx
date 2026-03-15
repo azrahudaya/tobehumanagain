@@ -10,7 +10,7 @@ import { useGame } from "../context/GameContext";
 
 type LevelStatus = "AVAILABLE" | "LOCKED" | "COMING_SOON";
 
-type DummyLevel = {
+type LevelCard = {
   id: string;
   title: string;
   status: LevelStatus;
@@ -18,7 +18,7 @@ type DummyLevel = {
   imageUrl: string;
 };
 
-const levelCards: DummyLevel[] = [
+const levelCards: LevelCard[] = [
   {
     id: "lv-01",
     title: "Digital Heart",
@@ -30,35 +30,35 @@ const levelCards: DummyLevel[] = [
     id: "lv-02",
     title: "Echo Chamber",
     status: "LOCKED",
-    description: "Dummy level. Nanti diisi konflik lanjutan dan pilihan baru.",
+    description: "Konflik lanjutan dengan pilihan yang lebih menantang.",
     imageUrl: "/checkpoints/bg-chat.png",
   },
   {
     id: "lv-03",
     title: "Silent Trigger",
     status: "LOCKED",
-    description: "Dummy level. Placeholder untuk branch drama berikutnya.",
+    description: "Cabang cerita berikutnya akan segera dibuka.",
     imageUrl: "/checkpoints/bg-thread.png",
   },
   {
     id: "lv-04",
     title: "Mirror Pulse",
     status: "COMING_SOON",
-    description: "Dummy level. Konsep masih tahap desain.",
+    description: "Level baru sedang disiapkan.",
     imageUrl: "/checkpoints/bg-safe-room.png",
   },
   {
     id: "lv-05",
     title: "Recovery Arc",
     status: "COMING_SOON",
-    description: "Dummy level. Akan fokus pada penyelesaian konflik.",
+    description: "Fokus pada fase pemulihan hubungan.",
     imageUrl: "/checkpoints/bg-reflect.png",
   },
   {
     id: "lv-06",
     title: "Human Again",
     status: "COMING_SOON",
-    description: "Dummy level final untuk ending chapter besar.",
+    description: "Chapter penutup menuju ending besar.",
     imageUrl: "/checkpoints/bg-closing.png",
   },
 ];
@@ -94,9 +94,9 @@ export const LevelSelectPage = () => {
     void loadTitleState();
   }, []);
 
-  const onSelectLevel = async (level: DummyLevel) => {
+  const onSelectLevel = async (level: LevelCard) => {
     if (level.status !== "AVAILABLE") {
-      toast("Level ini masih dummy. Nanti kita isi kontennya.");
+      toast("Level ini belum tersedia.");
       return;
     }
 
@@ -116,7 +116,7 @@ export const LevelSelectPage = () => {
   };
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="mx-auto w-full space-y-4 p-4 md:p-6 lg:w-2/3 lg:max-w-none">
       <div>
         <Button variant="secondary" className="h-10 rounded-xl px-4 text-lg" onClick={() => navigate("/home")}>
           <ArrowLeft className="h-4 w-4" />
@@ -128,11 +128,11 @@ export const LevelSelectPage = () => {
         <h1 className="font-caveat text-5xl text-ink">Choose Level</h1>
         <p className="inline-flex items-center gap-1 text-sm text-[#5c4a50]">
           <Sparkles className="h-4 w-4" />
-          Sebagian pilihan masih dummy untuk preview menu level.
+          Beberapa level masih terkunci dan akan dibuka bertahap.
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3">
         {levelCards.map((level, index) => (
           <motion.div
             key={level.id}
